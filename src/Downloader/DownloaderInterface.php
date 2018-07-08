@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Parse;
+namespace App\Downloader;
 
 use Generator;
 
-interface Downloader
+interface DownloaderInterface
 {
-    public function download(string ...$urls): Generator;
+    public function download(array $urls): Generator;
 }

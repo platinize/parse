@@ -4,17 +4,17 @@ namespace App\Parser;
 
 use RuntimeException;
 
-class MetaParser implements ParserInterface
+class TagParser implements ParserTagInterface
 {
-    const PAIRED_TAGS_PATERN = '/<%s[^>]*>(?P<value>.*)<\/%s>/';
+    const PAIRED_TAGS_PATERN = '/<%s\s*(?P<attributes>[^"]+[^>]*)>(?P<values>.*)<\/%s>/';
 
-    public function __invoke(string $content)
+    public function __invoke(string $content, string $tag)
     {
-        preg_match_all(static::PAIRED_TAGS_PATERN, $content, $matches);
+        preg_match_all(sprintf(static::PAIRED_TAGS_PATERN, $tag, $tag), $content, $matches);
 
-        ['props' => $props, 'values' => $values] = $matches;
+        ['attributes' => $attributes, 'values' => $values] = $matches;
 
-        return $this->combine($props, $this->filterValues($values));
+        return $this->combine($attributes, $this->filterValues($values));
     }
 
     protected function filterValues(array $values): array
@@ -24,23 +24,24 @@ class MetaParser implements ParserInterface
         }, $values);
     }
 
-    protected function combine(array $props, array $values): array
+    protected function combine(array $attributes, array $values): array
     {
-        if (count($props) < count($values)) {
-            throw $this->numberOfPropsIsLessThanNumberOfValues($props, $values);
+        if (count($attributes) < count($values)) {
+            throw $this->numberOfPropsIsLessThanNumberOfValues($attributes, $values);
         }
 
-        $values = array_pad($values, count($props), null);
+        $values = array_pad($values, count($attributes), null);
 
-        return array_combine($props, $values);
+        return array_combine($attributes, $values);
     }
-    
-    protected function numberOfPropsIsLessThanNumberOfValues(array $props, array $values): RuntimeException
+
+    protected function numberOfPropsIsLessThanNumberOfValues(array $attributes, array $values): RuntimeException
     {
         return new RuntimeException(sprintf(
-            'The number of props is less than the number of values. Props: [`%s`]. Values: [`%s`].',
-            implode('`, `', $props),
+            'The number of attribute is less than the number of values. Attribute: [`%s`]. Values: [`%s`].',
+            implode('`, `', $attributes),
             implode('`, `', $values)
         ));
     }
+
 }

@@ -3,11 +3,11 @@
 namespace Tests\Unit\Parser;
 
 use RuntimeException;
-use App\Parser\MetaParser;
+use App\Parser\TagParser;
 use PHPUnit\Framework\TestCase;
 use Mockery as m;
 
-class MetaParserTest extends TestCase
+class TagParserTest extends TestCase
 {
     /** @var MetaParser */
     public $parser;
@@ -16,7 +16,7 @@ class MetaParserTest extends TestCase
     {
         parent::setUp();
 
-        $this->parser = new MetaParser;
+        $this->parser = new TagParser;
     }
 
     public function tearDown()
@@ -27,12 +27,12 @@ class MetaParserTest extends TestCase
     }
 
     /** @test */
-    function it_will_throw_an_exception_if_the_number_of_props_is_less_than_the_number_of_values()
+    function it_will_throw_an_exception_if_the_number_of_attributes_is_less_than_the_number_of_values()
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('The number of props is less than the number of values. Props: [`key`]. Values: [`value1`, `value2`].');
+        $this->expectExceptionMessage('The number of attribute is less than the number of values. Attribute: [`key1`]. Values: [`value3`, `value4`].');
 
-        $this->partial($this->parser)->combine(['key'], ['value1', 'value2']);
+        $this->partial($this->parser)->combine(['key1'], ['value3', 'value4']);
     }
 
     /** @test */
@@ -46,35 +46,35 @@ class MetaParserTest extends TestCase
     }
 
     /** @test */
-    function it_returns_the_meta_data_keyed_by_name()
+    function it_returns_the_tags_values_keyed_by_attribute()
     {
         $content = '
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <meta name="referrer" content="always">
+            <a href="/users/3887771">qwerty03</a>
+            <a href="/finances">Money:</a>
         ';
 
         $expected = [
-            'viewport' => 'width=device-width, initial-scale=1',
-            'referrer' => 'always',
+            'href="/users/3887771"' => 'qwerty03',
+            'href="/finances"' => 'Money:',
         ];
 
-        $this->assertSame($expected, $this->parser->__invoke($content));
+        $this->assertSame($expected, $this->parser->__invoke($content, 'a'));
     }
 
     /** @test */
-    function it_returns_the_meta_date_keyed_by_name_with_null_values()
+    function it_returns_the_tags_keyed_by_attribute_with_null_values()
     {
         $content = '
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <meta name="referrer">
+            <a href="/users/3887771">qwerty03</a>
+            <a href="/finances"></a>
         ';
 
         $expected = [
-            'viewport' => 'width=device-width, initial-scale=1',
-            'referrer' => null,
+            'href="/users/3887771"' => 'qwerty03',
+            'href="/finances"' => null,
         ];
 
-        $this->assertSame($expected, $this->parser->__invoke($content));
+        $this->assertSame($expected, $this->parser->__invoke($content, 'a'));
     }
 
     public function partial($object)

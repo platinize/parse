@@ -15,7 +15,7 @@ class Downloader implements DownloaderInterface
         $this->client = $client;
     }
 
-    public function download(string ...$urls): Generator
+    public function download(array $urls): Generator
     {
         foreach ($urls as $url) {
             yield $this->client->get($url)->getBody();
